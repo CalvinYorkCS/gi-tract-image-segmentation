@@ -16,11 +16,12 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 class GIDatset(torch.utils.data.Dataset):
     def __init__(
         self,
-        image_ids,
+        df,
         preprocessing_fn=None,
     ):
         self.image_paths = []
-        self.rle_masks = pd.read_csv("../input/train.csv")['segmentation'].values
+        image_ids = df['id'].values
+        self.rle_masks = df['segmentation'].values
         self.preprocessing_fn = preprocessing_fn
 
         for imgid in image_ids:
@@ -61,14 +62,17 @@ class GIDatset(torch.utils.data.Dataset):
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
+    
+    df = pd.read_csv("../input/train.csv")
+    import time
 
-    image_ids = pd.read_csv("../input/train.csv")['id'].values
-
-    dataset = GIDatset(image_ids=image_ids)
-
+    start = time.time()
+    dataset = GIDatset(df)
+    print(f"Time after storing dataset: {time.time() - start}")
     sample = dataset[334]
     image = sample['image']
     mask = sample['mask']
+    print(f"Time after getting image and mask from sample: {time.time() - start}")
 
     fig, ax = plt.subplots(1, 2, figsize=(10, 5))
     ax[0].imshow(image.permute(1, 2, 0)) # Assuming (C, H, W) format
